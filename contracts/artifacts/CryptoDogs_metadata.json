@@ -180,6 +180,24 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "_dogId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_targetDogId",
+						"type": "uint256"
+					}
+				],
+				"name": "breed",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "string",
 						"name": "_name",
 						"type": "string"
@@ -534,19 +552,19 @@
 			]
 		},
 		"contracts/CryptoDogBreeding.sol": {
-			"keccak256": "0x3106d94a8ba8f4a6e6155fd80162f947b84e58fb9777ca2c8ee1a76ffb485a87",
+			"keccak256": "0xf8341dfb180247f99b91f7a5b1023f9f3147406677ffc5014a6e6542422ae981",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://7e8f7a0a2c9614953c910f4504de51310b422fdc6bd16d0bc1bfc60be4dd6acb",
-				"dweb:/ipfs/QmNPoa95E8oFxJMRXQmmYJ4h5z4zyrZqfTGfpxwULHr2F3"
+				"bzz-raw://fbbd8ed9da9fd44a2f1dca7ce37b9b9ba5dcba271a75237c8baea3b2889794d3",
+				"dweb:/ipfs/QmUqxCcCQgtZoMD5uWfCzAtFLqdrMR5kALE1nGq43Yg6r2"
 			]
 		},
 		"contracts/CryptoDogFactory.sol": {
-			"keccak256": "0x5d9cae51c772d54b3225e7ddf06cd1e8e2ca68a6edc8893d5bba875b26050071",
+			"keccak256": "0x3582410c57575c9104193bd8a88cf6cd6540589ada632eb0c2400781a02042fc",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://7dd67751b94f8ade11b16c8cbdd606491737b70276def63b124ce12fc3a60068",
-				"dweb:/ipfs/QmZVhw4Zso81rCFhs4E5kEmcBu4t2gGE9bJfQ98E7vTuvD"
+				"bzz-raw://ff898f17f007ef7680b4a4fdfa5d5869ee38351866ddcdf53a6dcaeb1163dccc",
+				"dweb:/ipfs/QmaFUntsNTFt5W2MXoDFgkmdwhsSxdh41cbhAdortgFRdi"
 			]
 		},
 		"contracts/Ownable.sol": {

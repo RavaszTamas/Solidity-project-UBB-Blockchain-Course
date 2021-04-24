@@ -22,7 +22,7 @@ contract CryptoDogFactory is Ownable {
     
     mapping(uint => address) public dogToOwner;
     mapping(address => uint) ownerDogCount;
-    uint cooldownTime = 1 days;
+    uint cooldownTime = 1 seconds;
 
     Dog[] public dogs;
     

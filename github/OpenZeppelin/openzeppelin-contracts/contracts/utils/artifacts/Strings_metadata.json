@@ -1,0 +1,46 @@
+{
+	"compiler": {
+		"version": "0.8.1+commit.df193b15"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "String operations.",
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"github/OpenZeppelin/openzeppelin-contracts/contracts/utils/Strings.sol": "Strings"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"github/OpenZeppelin/openzeppelin-contracts/contracts/utils/Strings.sol": {
+			"keccak256": "0x20fc3c236f46a5f17b3962efe9638b7812cf12b1e0d7fe96839328f3e31fdad1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e2172b85d8baf3da675da3edc2e238a73c8cfc932d5d21c775b7d0409291750c",
+				"dweb:/ipfs/QmP6bLdM2g3XhPM1GdDhGgSZTTcGpZVoHxNGwF7RbquQEH"
+			]
+		}
+	},
+	"version": 1
+}

@@ -22,7 +22,7 @@ contract CryptoDogTrading is Pausable, CryptoDogTradingBase {
 
 
 
-
+    /// @dev Updates lastSalePrice if seller is the nft contract
     function bid(uint256 _tokenId)
         external
         payable
@@ -35,6 +35,10 @@ contract CryptoDogTrading is Pausable, CryptoDogTradingBase {
         _transfer(seller, _tokenId);
     }
 
+    /// @dev Remove all Ether from the contract, which is the owner's cuts
+    ///  as well as any Ether sent directly to the contract address.
+    ///  Always transfers to the NFT contract, but can be called either by
+    ///  the owner or the NFT contract.
     function withdrawBalance() external {
         address nftAddress = address(nonFungibleContract);
 
@@ -43,6 +47,14 @@ contract CryptoDogTrading is Pausable, CryptoDogTradingBase {
         // We are using this boolean method to make sure that even if one fails it will still work
         bool res = payable(nftAddress).send(address(this).balance);
     }
+	
+	/// @dev Creates and begins a new auction.
+    /// @param _tokenId - ID of token to auction, sender must be owner.
+    /// @param _startingPrice - Price of item (in wei) at beginning of auction.
+    /// @param _endingPrice - Price of item (in wei) at end of auction.
+    /// @param _duration - Length of time to move between starting
+    ///  price and ending price (in seconds).
+    /// @param _seller - Seller, if not the message sender
 
     function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external whenNotPaused {
         // Sanity check that no inputs overflow how many bits we've allocated
@@ -57,6 +69,12 @@ contract CryptoDogTrading is Pausable, CryptoDogTradingBase {
         _addAuction(_tokenId, auction);
     }
 
+    /// @dev Cancels an auction that hasn't been won yet.
+    ///  Returns the NFT to original owner.
+    /// @notice This is a state-modifying function that can
+    ///  be called while the contract is paused.
+    /// @param _tokenId - ID of token on auction
+	
     function cancelAuction(uint256 _tokenId) external {
         Auction storage auction = tokenIdToAuction[_tokenId];
         require(_isOnAuction(auction));
@@ -65,22 +83,48 @@ contract CryptoDogTrading is Pausable, CryptoDogTradingBase {
         _cancelAuction(_tokenId, seller);
     }
 
+    /// @dev Cancels an auction when the contract is paused.
+    ///  Only the owner may do this, and NFTs are returned to
+    ///  the seller. This should only be used in emergencies.
+    /// @param _tokenId - ID of the NFT on auction to cancel.
     function cancelAuctionWhenPaused(uint256 _tokenId) whenPaused onlyOwner external {
         Auction storage auction = tokenIdToAuction[_tokenId];
         require(_isOnAuction(auction));
         _cancelAuction(_tokenId, auction.seller);
     }
 
+    /// @dev Returns auction info for an NFT on auction.
+    /// @param _tokenId - ID of NFT on auction.
     function getAuction(uint256 _tokenId) external view returns(address seller,uint256 startingPrice,uint256 endingPrice,uint256 duration,uint256 startedAt) {
         Auction storage auction = tokenIdToAuction[_tokenId];
         require(_isOnAuction(auction));
         return (auction.seller,auction.startingPrice,auction.endingPrice,auction.duration,auction.startedAt);
     }
+	
+	/// @dev Returns the current price of an auction.
+    /// @param _tokenId - ID of the token price we are checking.
     function getCurrentPrice(uint256 _tokenId) external view returns (uint256)
     {
         Auction storage auction = tokenIdToAuction[_tokenId];
         require(_isOnAuction(auction));
         return _currentPrice(auction);
     }
+	
+	    /// @dev Called by any "C-level" role to pause the contract. Used only when
+    ///  a bug or exploit is detected and we need to limit damage.
+    function pause() external onlyCLevel whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Unpauses the smart contract. Can only be called by the CEO, since
+    ///  one reason we may pause the contract is when CFO or COO accounts are
+    ///  compromised.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
+    function unpause() public onlyCEO whenPaused {
+        // can't unpause if contract was upgraded
+        paused = false;
+    }
+
 
 }

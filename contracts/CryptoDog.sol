@@ -9,6 +9,23 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
     
     
     using Address for address;
+    using SafeMath for uint;
+
+
+    bytes4 constant InterfaceSignature_ERC165 =
+        bytes4(keccak256('supportsInterface(bytes4)'));
+
+    bytes4 constant InterfaceSignature_ERC721 =
+        bytes4(keccak256('name()')) ^
+        bytes4(keccak256('symbol()')) ^
+        bytes4(keccak256('totalSupply()')) ^
+        bytes4(keccak256('balanceOf(address)')) ^
+        bytes4(keccak256('ownerOf(uint256)')) ^
+        bytes4(keccak256('approve(address,uint256)')) ^
+        bytes4(keccak256('transfer(address,uint256)')) ^
+        bytes4(keccak256('transferFrom(address,address,uint256)')) ^
+        bytes4(keccak256('tokensOfOwner(address)')) ^
+        bytes4(keccak256('tokenMetadata(uint256,string)'));
 
     // Token name
     string private _name;
@@ -16,8 +33,8 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
     // Token symbol
     string private _symbol;
 
-    mapping(uint => address) approvals;
-    mapping(address => mapping( address => bool)) _operatorApprovals; 
+    mapping(uint => address) private approvals;
+    mapping(address => mapping( address => bool)) private _operatorApprovals; 
     
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
@@ -27,6 +44,10 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
         _symbol = symbol_;
     }
 
+
+    /**
+     * @dev Returns the number of tokens in ``owner``'s account.
+     */
      function  balanceOf(address owner) external view override returns  (uint256 balance) {
         
         return ownerDogCount[owner];
@@ -34,6 +55,27 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
     }
 
 
+
+    function transfer(address _to, uint256 _tokenId) external override onlyOwnerOf(_tokenId) {
+        require(_to != address(0));
+        require(_to != address(this));
+        _transfer(msg.sender,_to,_tokenId);
+    }
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
     function safeTransferFrom(address from, address to, uint256 tokenId) external override {
         _safeTransferFrom(from,to,tokenId,"");
 //                require(dogToOwner[tokenId] == from, "Owner of the dog must be the from address");
@@ -41,12 +83,32 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
 
     }
     
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
     function transferFrom(address from, address to, uint256 tokenId) external override {
         require(_isApprovedOrOwner(msg.sender,tokenId), "Sender must be approved");
         _transfer(from,to,tokenId);
     }
 
-
+    /**
+     * @dev Returns the owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
     function ownerOf(uint256 tokenId) public view  override returns (address) {
         address owner = dogToOwner[tokenId];
         require(owner != address(0), "ERC721: owner query for nonexistent token");
@@ -77,13 +139,17 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
         
         _approve(address(0),tokenId);
         
-        ownerDogCount[from] -= 1;
-        ownerDogCount[to] += 1;
+        ownerDogCount[from].sub(1);
+        ownerDogCount[to].add(1);
         dogToOwner[tokenId] = to;
         
         emit Transfer(from,to,tokenId);
     }
-    
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
+     *
+     * See {setApprovalForAll}
+     */
     function isApprovedForAll(address owner, address operator) public view override returns (bool) {
         
         return _operatorApprovals[owner][operator];
@@ -91,6 +157,19 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
     }
 
     
+        /**
+     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * The approval is cleared when the token is transferred.
+     *
+     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
+     *
+     * Requirements:
+     *
+     * - The caller must own the token or be an approved operator.
+     * - `tokenId` must exist.
+     *
+     * Emits an {Approval} event.
+     */
     function approve(address to, uint256 tokenId) external override {
         
         address owner = ownerOf(tokenId);
@@ -102,12 +181,29 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
         _approve(to,tokenId);
     }
     
+    /**
+     * @dev Returns the account approved for `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
     function getApproved(uint256 tokenId) external view override returns (address operator)  {
         require(_exists(tokenId),"Token must exist!");
         return approvals[tokenId];
     }
 
 
+    /**
+     * @dev Approve or remove `operator` as an operator for the caller.
+     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
+     *
+     * Requirements:
+     *
+     * - The `operator` cannot be the caller.
+     *
+     * Emits an {ApprovalForAll} event.
+     */
     function setApprovalForAll(address operator, bool _approved) external override {
         require(operator != msg.sender,"You can't approve yourself");
         
@@ -117,7 +213,19 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
         
     }
 
-
+    /**
+      * @dev Safely transfers `tokenId` token from `from` to `to`.
+      *
+      * Requirements:
+      *
+      * - `from` cannot be the zero address.
+      * - `to` cannot be the zero address.
+      * - `tokenId` token must exist and be owned by `from`.
+      * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+      * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+      *
+      * Emits a {Transfer} event.
+      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external override {
         require(from != address(0) && to != address(0) && _exists(tokenId) && _isApprovedOrOwner(msg.sender,tokenId));
         _safeTransferFrom(from,to,tokenId,data);
@@ -150,5 +258,10 @@ contract CryptoDogs is IERC721,CryptoDogBreeding {
         }
     }
 
+    function supportsInterface(bytes4 _interfaceID) external view override returns (bool)
+    {
+
+        return ((_interfaceID == InterfaceSignature_ERC165) || (_interfaceID == InterfaceSignature_ERC721));
+    }
 
 }
